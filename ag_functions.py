@@ -1,3 +1,9 @@
+"""
+Created on Tue 2020 27 Oct
+
+@author: gnleo
+"""
+
 import math as m
 import numpy as np
 import random as rd
@@ -21,8 +27,7 @@ def generate_population(pop_size, bits):
         
     return population
 
-def bin_2_int(value_bit):
-    bits = 28
+def bin_2_int(value_bit, bits):
     soma = 0
     index = len(value_bit)
 
@@ -58,23 +63,17 @@ def sum_fitness(fitness):
         # print('v_sum = {} | v_fit = {}'.format(v_sum, x[i]))
     return v_sum
 
-def mutation(children, bits, tm):
-    if(rd.random() < tm):
-        # print('\tMutation')
-        # cria vetor de indices inteiros até [bits - 1]
-        indexs = np.arange(0, bits, 1)
-        # sorteia indice de corte
-        index_sort = rd.sample(list(indexs), 1)
+def mutation(children, tm):
+    for i in range(len(children)):
+        for j in range(len(children[i])):
+            if(rd.random() < tm):
+                if(children[i][j] == 1):
+                    children[i][j] = 0
+                else:
+                    children[i][j] = 1
 
-        # executa a mutação, inverte o valor do bit
-        if (children[index_sort[0]] == 1):
-            children[index_sort[0]] = 0
-        else:
-            children[index_sort[0]] = 1
-        
-        return children
-    else:
-        return children
+    return children
+
 
 
 def crossover(parent_1, parent_2, bits, tc):
@@ -122,7 +121,7 @@ def crossover(parent_1, parent_2, bits, tc):
         return None
 
 
-def save(name, bits, indexes, structure):
+def save(name, bits, structure):
 
     # cria vetor de indices inteiros até [bits - 1]
     columns = np.arange(0, bits, 1)
@@ -132,8 +131,8 @@ def save(name, bits, indexes, structure):
     with open(complete_path, 'a+', newline = '') as arq:
         linha = csv.writer(arq, delimiter=',') # delimiter = '.'
         linha.writerow(columns)
-        for element in indexes:
-            linha.writerow(structure[int(element)])
+        for element in structure:
+            linha.writerow(element)
 
 
 def select_better_indexes(list_interable):
@@ -144,3 +143,9 @@ def select_better_indexes(list_interable):
         search_space[np.argmax(search_space)] = 0
 
     return indexes
+
+def select_best_fitness(list_interable):
+    return list_interable[np.argmax(list_interable)]
+
+def select_bad_fitness(list_interable):
+    return list_interable[np.argmin(list_interable)]
