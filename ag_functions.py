@@ -45,6 +45,11 @@ def fitness(x, y):
 
     return ((0.5 - num) / den)
 
+def translate_fitness(x, y):
+    num = m.pow( ( m.sin( m.sqrt( ( (x*x) + (y*y) ) ) ) ) , 2) - 0.5
+    den = m.pow( ( ( 1 + ( 0.001 * ( (x*x) + (y*y) )) ) ), 2)
+    return ((999.5 - num) / den)    
+
 def roulette(pop_size, sum_fitness, fitness):
     i = 0
     aux = 0
@@ -73,8 +78,6 @@ def mutation(children, tm):
                     children[i][j] = 1
 
     return children
-
-
 
 def crossover(parent_1, parent_2, bits, tc):
     if(rd.random() < tc):
@@ -120,13 +123,13 @@ def crossover(parent_1, parent_2, bits, tc):
     else:
         return None
 
-
 def save(name, bits, structure):
 
     # cria vetor de indices inteiros até [bits - 1]
     columns = np.arange(0, bits, 1)
 
-    complete_path = os.getcwd() + '/bckp/' + str(name) + '.csv'
+    # complete_path = os.getcwd() + '/bckp/' + str(name) + '.csv'
+    complete_path = os.getcwd() + str(name) + '.csv'
 
     with open(complete_path, 'a+', newline = '') as arq:
         linha = csv.writer(arq, delimiter=',') # delimiter = '.'
@@ -135,10 +138,10 @@ def save(name, bits, structure):
             linha.writerow(element)
 
 
-def select_better_indexes(list_interable):
+def select_better_indexes(list_interable, num_values):
     search_space = list_interable.copy()
     indexes = []
-    for i in range(6):
+    for i in range(num_values):
         indexes = np.append(indexes, np.argmax(search_space))
         search_space[np.argmax(search_space)] = 0
 
