@@ -153,3 +153,15 @@ def select_best_fitness(list_interable):
 
 def select_bad_fitness(list_interable):
     return list_interable[np.argmin(list_interable)]
+
+
+def elitism(best_indexes, bad_indexes, pop, pop_children):
+    aux = 0
+
+    while(aux != len(bad_indexes)):
+        # print(pop[int(round(bad_indexes[int(round(aux))]))])
+        # print(pop_children[int(round(m_fit_f[int(round(aux))]))])
+        pop[int(round(bad_indexes[int(round(aux))]))] = pop_children[int(round(best_indexes[int(round(aux))]))]
+        aux += 1
+
+    return pop

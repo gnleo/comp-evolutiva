@@ -24,11 +24,12 @@ best_fitness = []
 pop_fitness = np.zeros(pop_size)
 children_fitness = np.zeros(pop_size)
 generation = 1000
-repetitions = 1
+repetitions = 5
 percent = 10
 
 # main ----------
 population = generate_population(pop_size, bits)
+POPULATION_COPY = population.copy()
 
 for i in range(pop_size):
     # divide cromosso para conversão
@@ -80,7 +81,11 @@ for k in range(repetitions):
             pop_fitness[j] = children_fitness[j]
 
         # substituição da população -> existe refatoramento da estrutura
-        population = np.reshape(pop_children, (pop_size, bits))
+
+        best_indexes = select_best_indexes(pop_fitness, percent)
+        bad_indexes = select_worst_indexes(pop_fitness, percent)
+        # executa elitismo
+        population = elitism(best_indexes, bad_indexes, population, pop_children)
         pop_children = []
 
         # executa preenchimento dos vetores de média, pior e melhor (fitness)
@@ -89,6 +94,7 @@ for k in range(repetitions):
         best_fitness = np.append(best_fitness, select_best_fitness(pop_fitness))
 
     print('FIM PROCESSO EVOLUTIVO {}'.format(k))
+    population = POPULATION_COPY
 
 # executa controle para cada repetição do treinamento -> realizando um mapeamento matricial
 average_fitness = np.reshape(average_fitness, (repetitions, generation))
