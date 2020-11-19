@@ -85,43 +85,35 @@ def crossover(parent_1, parent_2, bits, tc):
         indexs = np.arange(0, bits, 1)
         # sorteia indice de corte
         index_sort = rd.sample(list(indexs), 1)
-        if(index_sort[0] > 0 and index_sort[0] < bits):
-            # print('\tCruzamento')
-            new_1 = np.zeros(bits)
-            new_2 = np.zeros(bits)
 
-            # print('índice = {}'.format(index_sort))
-            # print('pai_1 = {}'.format(parent_1))
-            # print('pai_2 = {}'.format(parent_2))
-            # print('splip_1 = {}'.format(parent_1[ : index_sort[0] ]))
-            # print('splip_2 = {}'.format(parent_2[ index_sort[0] : ]))
-            # print('splip_2.1 = {}'.format(parent_2[ : index_sort[0] ]))
-            # print('splip_1.1 = {}'.format(parent_1[ index_sort[0] : ]))
+        new_1 = np.zeros(bits)
+        new_2 = np.zeros(bits)
 
+        # print('\tCruzamento')
+        if(index_sort == 0 or index_sort == (bits-1)):
+            new_1[index_sort] = parent_1[index_sort]
+            new_1[index_sort : ] = parent_2[index_sort :]
+
+            new_2[index_sort] = parent_2[index_sort]
+            new_2[index_sort : ] = parent_1[index_sort :]
+        else:
             new_1[ : index_sort[0] ] = parent_1[ : index_sort[0] ]
             new_1[ index_sort[0] : ] = parent_2[ index_sort[0] : ]
 
             new_2[ : index_sort[0] ] = parent_2[ : index_sort[0] ]
             new_2[ index_sort[0] : ] = parent_1[ index_sort[0] : ]
 
-            children = []
-            children = np.append(children, new_1)
-            children = np.append(children, new_2)
+        children = []
+        children = np.append(children, new_1)
+        children = np.append(children, new_2)
 
-            # print('filho_1 = {}'.format(new_1))
-            # print('filho_2 = {}'.format(new_2))
-
-            children = np.reshape(children, (2,bits))
-
-            return children
-            
-        else:
-            # print('índice = {}'.format(index_sort))
-            # print('indice não permite cruzamento')
-            return None
+        return np.reshape(children, (2,bits))
 
     else:
-        return None
+        children = []
+        children = np.append(children, parent_1)
+        children = np.append(children, parent_2)
+        return np.reshape(children, (2,bits))
 
 def save(name, bits, structure):
 
@@ -138,12 +130,21 @@ def save(name, bits, structure):
             linha.writerow(element)
 
 
-def select_better_indexes(list_interable, num_values):
+def select_best_indexes(list_interable, num_values):
     search_space = list_interable.copy()
     indexes = []
     for i in range(num_values):
         indexes = np.append(indexes, np.argmax(search_space))
         search_space[np.argmax(search_space)] = 0
+
+    return indexes
+
+def select_worst_indexes(list_interable, num_values):
+    search_space = list_interable.copy()
+    indexes = []
+    for i in range(num_values):
+        indexes = np.append(indexes, np.argmin(search_space))
+        search_space[np.argmin(search_space)] = 100000
 
     return indexes
 
