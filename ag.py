@@ -23,7 +23,7 @@ bad_fitness = []
 best_fitness = []
 pop_fitness = np.zeros(pop_size)
 children_fitness = np.zeros(pop_size)
-generation = 1000
+generation = 500
 repetitions = 5
 percent = 10
 
@@ -31,15 +31,7 @@ percent = 10
 population = generate_population(pop_size, bits)
 POPULATION_COPY = population.copy()
 
-for i in range(pop_size):
-    # divide cromosso para conversão
-    x_bin = population[i][ : split ]
-    y_bin = population[i][ split : ]
-    # executa conversão binário para inteiro
-    x_int = bin_2_int(x_bin, bits)
-    y_int = bin_2_int(y_bin, bits)
-    # preenche vetor Fitness da população
-    pop_fitness[i] = fitness(x_int, y_int)
+pop_fitness = estimate_fitness(population, pop_size, bits, split)
 
 # para executar o algoritmo N vezes -> alterar o valor da variável 'repetitions'
 for k in range(repetitions):
@@ -69,24 +61,21 @@ for k in range(repetitions):
         pop_children = np.reshape(pop_children, (pop_size, bits))
         
         # realiza novo cálculo de fitness
-        for j in range(len(pop_children)):
-            # divide cromosso para conversão
-            x_bin = pop_children[j][ : split ]
-            y_bin = pop_children[j][ split : ]
-            # executa conversão binário para inteiro
-            x_int = bin_2_int(x_bin, bits)
-            y_int = bin_2_int(y_bin, bits)
-            # preenche vetor Fitness da população filhos
-            children_fitness[j] = fitness(x_int, y_int)
-            pop_fitness[j] = children_fitness[j]
+        children_fitness = estimate_fitness(pop_children, pop_size, bits, split)
 
-        # substituição da população -> existe refatoramento da estrutura
-
+        # seleciona melhores indivíduos da população anterior 
         best_indexes = select_best_indexes(pop_fitness, percent)
-        bad_indexes = select_worst_indexes(pop_fitness, percent)
-        # executa elitismo
+        # seleciona piores indivíduos da geração atual
+        bad_indexes = select_worst_indexes(children_fitness, percent)
+        # executa elitismo -> altera os piores registros da população, pelos melhores registros do processo evolutivo
         population = elitism(best_indexes, bad_indexes, population, pop_children)
+        
+        # zera população de filhos
         pop_children = []
+
+        # calcula fitness da geração atual => pop_fitness 
+        # -> pode ser comentado para reduzir a subida de aptidão dos piores indivíduos
+        pop_fitness = estimate_fitness(population, pop_size, bits, split)
 
         # executa preenchimento dos vetores de média, pior e melhor (fitness)
         average_fitness = np.append(average_fitness, ((sum_fitness(pop_fitness)) / pop_size))
