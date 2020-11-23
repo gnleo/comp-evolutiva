@@ -161,7 +161,22 @@ def elitism(best_indexes, bad_indexes, pop, pop_children):
     while(aux != len(bad_indexes)):
         # print(pop[int(round(bad_indexes[int(round(aux))]))])
         # print(pop_children[int(round(m_fit_f[int(round(aux))]))])
-        pop[int(round(bad_indexes[int(round(aux))]))] = pop_children[int(round(best_indexes[int(round(aux))]))]
+        pop_children[int(round(bad_indexes[int(round(aux))]))] = pop[int(round(best_indexes[int(round(aux))]))]
         aux += 1
 
-    return pop
+    return pop_children
+
+def estimate_fitness(population, pop_size, bits, split):
+    pop_fitness = np.zeros(pop_size)
+
+    for i in range(pop_size):
+        # divide cromosso para conversão
+        x_bin = population[i][ : split ]
+        y_bin = population[i][ split : ]
+        # executa conversão binário para inteiro
+        x_int = bin_2_int(x_bin, bits)
+        y_int = bin_2_int(y_bin, bits)
+        # preenche vetor Fitness da população
+        pop_fitness[i] = fitness(x_int, y_int)
+
+    return pop_fitness
