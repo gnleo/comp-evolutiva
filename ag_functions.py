@@ -4,6 +4,7 @@ Created on Tue 2020 27 Oct
 @author: gnleo
 """
 
+from operator import itemgetter
 import math as m
 import numpy as np
 import random as rd
@@ -45,7 +46,7 @@ def fitness(x, y):
 
     return ((0.5 - num) / den)
 
-def translate_fitness(x, y):
+def displacement_fitness(x, y):
     num = m.pow( ( m.sin( m.sqrt( ( (x*x) + (y*y) ) ) ) ) , 2) - 0.5
     den = m.pow( ( ( 1 + ( 0.001 * ( (x*x) + (y*y) )) ) ), 2)
     return ((999.5 - num) / den)    
@@ -80,6 +81,7 @@ def mutation(children, tm):
     return children
 
 def crossover(parent_1, parent_2, bits, tc):
+    children = []
     if(rd.random() < tc):
         # cria vetor de indices inteiros até [bits - 1]
         indexs = np.arange(0, bits, 1)
@@ -103,17 +105,100 @@ def crossover(parent_1, parent_2, bits, tc):
             new_2[ : index_sort[0] ] = parent_2[ : index_sort[0] ]
             new_2[ index_sort[0] : ] = parent_1[ index_sort[0] : ]
 
-        children = []
+        children = np.append(children, new_1)
+        children = np.append(children, new_2)
+    else:
+        children = np.append(children, parent_1)
+        children = np.append(children, parent_2)
+    
+    return np.reshape(children, (2,bits))
+
+def crossover_binary(parent_1, parent_2, bits, tc):
+    children = []
+    if(rd.random() < tc):
+
+        new_1 = np.zeros(bits)
+        new_2 = np.zeros(bits)
+
+        # cria vetor de indices inteiros até [bits - 1]
+        indexs = np.arange(0, bits, 1)
+        # sorteia indice de corte
+        boolean = True
+        while(boolean == True):
+            index_sort_1 = rd.sample(list(indexs), 1)
+            index_sort_2 = rd.sample(list(indexs), 1)
+
+            if(index_sort_1 < index_sort_2 and ((index_sort_2[0] - index_sort_1[0]) >= 2)):
+                boolean = False
+
+        # cruzamento
+        if(index_sort_1[0] == 0 and index_sort_2[0] == (6-1)):
+            # print('1')
+            # print('index_1 = {}, index_2 = {}'.format(index_sort_1[0], index_sort_2[0]))
+            index_plus = (index_sort_1[0] + 1)
+
+            new_1[ index_sort_1[0] ] = parent_1[ index_sort_1[0] ]
+            new_1[ index_plus : index_sort_2[0] ] = parent_2[ index_plus : index_sort_2[0] ]
+            new_1[ index_sort_2[0] ] = parent_1[ index_sort_2[0] ]
+
+            new_2[ index_sort_1[0] ] = parent_2[ index_sort_1[0] ]
+            new_2[ index_plus : index_sort_2[0] ] = parent_1[ index_plus : index_sort_2[0] ]
+            new_2[ index_sort_2[0] ] = parent_2[ index_sort_2[0] ]
+        elif(index_sort_1[0] == 0):
+            # print('2')
+            # print('index_1 = {}, index_2 = {}'.format(index_sort_1[0], index_sort_2[0]))
+            new_1[ index_sort_1[0] ] = parent_1[ index_sort_1[0] ]
+            new_1[ index_plus : index_sort_2[0] ] = parent_2[ index_plus : index_sort_2[0] ]
+            new_1[ index_sort_2[0] : ] = parent_1[ index_sort_2[0] : ]
+
+            new_2[ index_sort_1[0] ] = parent_2[ index_sort_1[0] ]
+            new_2[ index_plus : index_sort_2[0] ] = parent_1[ index_plus : index_sort_2[0] ]
+            new_2[ index_sort_2[0] : ] = parent_2[ index_sort_2[0] : ]
+        else:
+            # print('3')
+            # print('index_1 = {}, index_2 = {}'.format(index_sort_1[0], index_sort_2[0]))
+            new_1[ : index_sort_1[0] ] = parent_1[ : index_sort_1[0] ]
+            new_1[ index_sort_1[0] : index_sort_2[0] ] = parent_2[ index_sort_1[0] : index_sort_2[0] ]
+            new_1[ index_sort_2[0] : ] = parent_1[ index_sort_2[0] : ]
+
+            new_2[ : index_sort_1[0] ] = parent_2[ : index_sort_1[0] ]
+            new_2[ index_sort_1[0] : index_sort_2[0] ] = parent_1[ index_sort_1[0] : index_sort_2[0] ]
+            new_2[ index_sort_2[0] : ] = parent_2[ index_sort_2[0] : ]
+
         children = np.append(children, new_1)
         children = np.append(children, new_2)
 
-        return np.reshape(children, (2,bits))
-
     else:
-        children = []
         children = np.append(children, parent_1)
         children = np.append(children, parent_2)
-        return np.reshape(children, (2,bits))
+    
+    return  np.reshape(children, (2,bits))
+
+def uniform_crossover_binary(parent_1, parent_2, bits, tc):
+    children = []
+    if(rd.random() < tc):
+        mask = np.zeros(bits)
+        new_1 = np.zeros(bits)
+        new_2 = np.zeros(bits)
+
+        for i in range(bits):
+            mask[i] = rd.randint(0,1)
+            if(mask[i] == 1):
+                new_1[i] = parent_2[i]
+                new_2[i] = parent_1[i]
+            else:
+                new_1[i] = parent_1[i]
+                new_2[i] = parent_2[i]
+
+        children = np.append(children, new_1)
+        children = np.append(children, new_2)
+    else:
+        children = np.append(children, parent_1)
+        children = np.append(children, parent_2)
+    
+    return  np.reshape(children, (2,bits))
+
+
 
 def save(name, bits, structure):
 
@@ -166,7 +251,7 @@ def elitism(best_indexes, bad_indexes, pop, pop_children):
 
     return pop_children
 
-def estimate_fitness(population, pop_size, bits, split):
+def estimate_fitness(population, pop_size, bits, split, fitness_type='N'):
     pop_fitness = np.zeros(pop_size)
 
     for i in range(pop_size):
@@ -177,6 +262,32 @@ def estimate_fitness(population, pop_size, bits, split):
         x_int = bin_2_int(x_bin, bits)
         y_int = bin_2_int(y_bin, bits)
         # preenche vetor Fitness da população
-        pop_fitness[i] = fitness(x_int, y_int)
+        if(fitness_type == 'N'):
+            pop_fitness[i] = fitness(x_int, y_int)
+        else:
+            pop_fitness[i] = displacement_fitness(x_int, y_int)
 
     return pop_fitness
+
+def linear_normalization(population, fitness, MIN, MAX, BITS, POP_SIZE):
+    normalized_population = np.zeros([BITS, POP_SIZE])
+    normalized_fitness = np.zeros(POP_SIZE)
+    # cria matriz de indivíduos e seus respectivos valores de aptdão
+    pop_complete = np.c_[population, fitness]
+
+    # ordena os indivíduos de forma decrescente, de acordo com a última coluna
+    aux = sorted(pop_complete, reverse=True, key=itemgetter(len(pop_complete)))
+
+    for i in range(POP_SIZE):
+        normalized_population[i] = aux[i][ : len(pop_complete)]
+    
+    value_n = MAX - MIN
+    value_d = POP_SIZE - 1
+    value = value_n / value_d
+
+    # print('n = {} d = {} v = {}'.format(value_n, value_d, value))
+
+    for j in range(POP_SIZE):
+        normalized_fitness[j] = MIN + (value * ((j+1) - 1))
+
+    return normalized_population, sorted(normalized_fitness, reverse=True)

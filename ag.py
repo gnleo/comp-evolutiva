@@ -24,7 +24,7 @@ best_fitness = []
 pop_fitness = np.zeros(pop_size)
 children_fitness = np.zeros(pop_size)
 generation = 500
-repetitions = 5
+repetitions = 2
 percent = 10
 
 # main ----------
