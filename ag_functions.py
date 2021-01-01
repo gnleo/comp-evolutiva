@@ -11,6 +11,15 @@ import random as rd
 import csv
 import os
 
+
+TM = 0.01
+TC = 0.75
+BITS = 5
+POP_SIZE = 100
+
+SPLIT = int(BITS / 2)
+
+
 def precision_2_number_bits(value_precision, i_I = -100, i_F = 100):
     num = ((i_F - (i_I)) * (m.pow(10, value_precision)))
     return m.ceil( m.log(num) / m.log(2) )
@@ -44,12 +53,12 @@ def fitness(x, y):
     num = m.pow( ( m.sin( m.sqrt( ( (x*x) + (y*y) ) ) ) ) , 2) - 0.5
     den = m.pow( ( ( 1 + ( 0.001 * ( (x*x) + (y*y) )) ) ), 2)
 
-    return ((0.5 - num) / den)
+    return (0.5 - (num / den))
 
 def displacement_fitness(x, y):
     num = m.pow( ( m.sin( m.sqrt( ( (x*x) + (y*y) ) ) ) ) , 2) - 0.5
     den = m.pow( ( ( 1 + ( 0.001 * ( (x*x) + (y*y) )) ) ), 2)
-    return ((999.5 - num) / den)    
+    return (999.5 - (num / den))
 
 def roulette(pop_size, sum_fitness, fitness):
     i = 0
@@ -135,7 +144,7 @@ def crossover_binary(parent_1, parent_2, bits, tc):
         if(index_sort_1[0] == 0 and index_sort_2[0] == (6-1)):
             # print('1')
             # print('index_1 = {}, index_2 = {}'.format(index_sort_1[0], index_sort_2[0]))
-            index_plus = (index_sort_1[0] + 1)
+            index_plus = 1
 
             new_1[ index_sort_1[0] ] = parent_1[ index_sort_1[0] ]
             new_1[ index_plus : index_sort_2[0] ] = parent_2[ index_plus : index_sort_2[0] ]
@@ -147,6 +156,8 @@ def crossover_binary(parent_1, parent_2, bits, tc):
         elif(index_sort_1[0] == 0):
             # print('2')
             # print('index_1 = {}, index_2 = {}'.format(index_sort_1[0], index_sort_2[0]))
+            index_plus = 1
+
             new_1[ index_sort_1[0] ] = parent_1[ index_sort_1[0] ]
             new_1[ index_plus : index_sort_2[0] ] = parent_2[ index_plus : index_sort_2[0] ]
             new_1[ index_sort_2[0] : ] = parent_1[ index_sort_2[0] : ]
@@ -200,12 +211,17 @@ def uniform_crossover_binary(parent_1, parent_2, bits, tc):
 
 
 
-def save(name, bits, structure):
+def save(name, first_char_name_arq, bits, structure):
+
+    aux = name.split('/{}'.format(first_char_name_arq))
+    folder = os.getcwd()  + aux[0]
+
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
     # cria vetor de indices inteiros até [bits - 1]
     columns = np.arange(0, bits, 1)
-
-    # complete_path = os.getcwd() + '/bckp/' + str(name) + '.csv'
+    # estabelece path de destino do arquivo
     complete_path = os.getcwd() + str(name) + '.csv'
 
     with open(complete_path, 'a+', newline = '') as arq:
@@ -269,25 +285,83 @@ def estimate_fitness(population, pop_size, bits, split, fitness_type='N'):
 
     return pop_fitness
 
-def linear_normalization(population, fitness, MIN, MAX, BITS, POP_SIZE):
-    normalized_population = np.zeros([BITS, POP_SIZE])
-    normalized_fitness = np.zeros(POP_SIZE)
-    # cria matriz de indivíduos e seus respectivos valores de aptdão
-    pop_complete = np.c_[population, fitness]
 
-    # ordena os indivíduos de forma decrescente, de acordo com a última coluna
-    aux = sorted(pop_complete, reverse=True, key=itemgetter(len(pop_complete)))
-
+def generate_population_real():
+    population = []
     for i in range(POP_SIZE):
-        normalized_population[i] = aux[i][ : len(pop_complete)]
+        cromosso = np.zeros(BITS)
+        for j in range(BITS):
+            cromosso[j] = rd.uniform(-100, 100)
+
+        population.append(cromosso)
     
-    value_n = MAX - MIN
-    value_d = POP_SIZE - 1
-    value = value_n / value_d
+    return population
 
-    # print('n = {} d = {} v = {}'.format(value_n, value_d, value))
+def estimate_fitness_real(population):
+    pop_fitness = np.zeros(POP_SIZE)
+    for k in range(POP_SIZE):
+        x = population[k][0]
+        y = population[k][1]
+        pop_fitness[k] = fitness(x,y)
+    
+    return pop_fitness
 
-    for j in range(POP_SIZE):
-        normalized_fitness[j] = MIN + (value * ((j+1) - 1))
 
-    return normalized_population, sorted(normalized_fitness, reverse=True)
+def crossover_real(parent_1, parent_2):
+    children = []
+
+    if(rd.random() < TC):
+
+        new_1 = np.zeros(BITS)
+        new_2 = np.zeros(BITS)
+
+        new_1[0] = parent_1[0]
+        new_1[1] = parent_2[1]
+
+        new_2[0] = parent_2[0]
+        new_2[1] = parent_1[1]
+
+        children = np.append(children, new_1)
+        children = np.append(children, new_2)
+
+    else:
+        children = np.append(children, parent_1)
+        children = np.append(children, parent_2)
+    
+    return np.reshape(children, (2,BITS))
+
+def media_arithmetic_crossover_real(parent_1, parent_2):
+    children = []
+    if(rd.random() < TC):
+        new_1 = np.zeros(BITS)
+
+        for i in range(BITS):
+            new_1[i] = ((parent_1[i] + parent_2[i]) / 2)
+
+        children = np.append(children, new_1)
+    else:
+        children = np.append(children, parent_1)
+    
+    return  np.reshape(children, (1,BITS))
+
+def uniform_random_mutation(children):
+    for i in range(len(children)):
+        for j in range(len(children[i])):
+            if(rd.random() < TM):
+                children[i][j] = rd.uniform(-100, 100)
+                # break
+
+    return children
+
+
+def estimate_fitness_real_f6_M(population):
+    pop_fitness = np.zeros(POP_SIZE)
+    for k in range(POP_SIZE):
+        x1 = population[k][0]
+        x2 = population[k][1]
+        x3 = population[k][2]
+        x4 = population[k][3]
+        x5 = population[k][4]
+        pop_fitness[k] = fitness(x1,x2) + fitness(x2,x3) + fitness(x3,x4) + fitness(x4,x5) + fitness(x5,x1)
+    
+    return pop_fitness

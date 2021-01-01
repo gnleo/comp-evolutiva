@@ -27,15 +27,15 @@ generation = 500
 repetitions = 5
 percent = 1
 
-PATH_SAVE = "/05/5_real/uniforme"
+PATH_SAVE = "/04/2_elitismo_singular/dois_pontos_corte"
 
 # main ----------
-population = generate_population_real()
+population = generate_population(pop_size, bits)
 POPULATION_COPY = population.copy()
 
-save(PATH_SAVE + '/population_inicial', 'p', 5, population)
+save(PATH_SAVE + '/population_inicial', 'p', bits, population)
 
-pop_fitness = estimate_fitness_real_f6_M(population)
+pop_fitness = estimate_fitness(population, pop_size, bits, split)
 
 # para executar o algoritmo N vezes -> alterar o valor da variável 'repetitions'
 for k in range(repetitions):
@@ -45,33 +45,42 @@ for k in range(repetitions):
     for i in range(generation):
         
         # após o while a população de filhos é equivalente a população anterior
-        # aqui 2 é o numero de bits para real
-        while(int(len(pop_children)/5) != pop_size):
+        while(int(len(pop_children)/bits) != pop_size):
             # executa somatório dos valores de fitness da população
+            # population, pop_fitness = linear_normalization(population, pop_fitness, 1, 20, bits, pop_size)
+
             fitness_sum = sum_fitness(pop_fitness)
 
             # seleciona os índices de indivíduos aptos ao cruzamento
             index_parent_1 = roulette(pop_size, fitness_sum, pop_fitness)
             index_parent_2 = roulette(pop_size, fitness_sum, pop_fitness)
 
-            children = uniform_crossover_binary(population[index_parent_1], population[index_parent_2], 5, tc)
+            children = crossover_binary(population[index_parent_1], population[index_parent_2], bits, tc)
             
             # executa procedimento de mutação
-            children = uniform_random_mutation(children)
+            children = mutation(children, tm)
 
             # adiciona filhos para nova população (geração)
             pop_children = np.append(pop_children, children)
 
         # realiza cálculo de fitness da população de filhos
-        population = np.reshape(pop_children, (pop_size, 5))
+        pop_children = np.reshape(pop_children, (pop_size, bits))
+        children_fitness = estimate_fitness(pop_children, pop_size, bits, split)
 
-        save(PATH_SAVE + '/evolution_{}/population_{}'.format(k,i), 'p', 5, population)
+        # ELITISMO
+        # seleciona melhores indivíduos da população anterior 
+        best_indexes = select_best_indexes(pop_fitness, percent)
+        # seleciona piores indivíduos da geração atual
+        bad_indexes = select_worst_indexes(children_fitness, percent)
+        # executa elitismo -> altera os piores registros da população, pelos melhores registros do processo evolutivo
+        population = elitism(best_indexes, bad_indexes, population, pop_children)
         
+        save(PATH_SAVE + '/evolution_{}/population_{}'.format(k,i), 'p', bits, population)
         # zera população de filhos
         pop_children = []
 
         # calcula fitness da geração atual => pop_fitness 
-        pop_fitness = estimate_fitness_real_f6_M(population)
+        pop_fitness = estimate_fitness(population, pop_size, bits, split)
 
         # executa preenchimento dos vetores de média, pior e melhor (fitness)
         average_fitness = np.append(average_fitness, ((sum_fitness(pop_fitness)) / pop_size))
