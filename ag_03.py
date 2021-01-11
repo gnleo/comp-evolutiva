@@ -24,7 +24,7 @@ PATH_SAVE = "/04/2_elitismo_singular/dois_pontos_corte"
 population = generate_population()
 POPULATION_COPY = population.copy()
 
-# save(PATH_SAVE + '/population_inicial', 'p', population)
+save(PATH_SAVE + '/population_inicial', 'p', population)
 
 pop_fitness = estimate_fitness(population)
 
@@ -60,13 +60,13 @@ for k in range(REPETITIONS):
 
         # ELITISMO
         # seleciona melhores indivíduos da população anterior 
-        best_indexes = select_best_indexes(pop_fitness, percent)
+        best_indexes = select_best_indexes(pop_fitness, PERCENT)
         # seleciona piores indivíduos da geração atual
-        bad_indexes = select_worst_indexes(children_fitness, percent)
+        bad_indexes = select_worst_indexes(children_fitness, PERCENT)
         # executa elitismo -> altera os piores registros da população, pelos melhores registros do processo evolutivo
         population = elitism(best_indexes, bad_indexes, population, pop_children)
         
-        # save(PATH_SAVE + '/evolution_{}/population_{}'.format(k,i), 'p', population)
+        save(PATH_SAVE + '/evolution_{}/population_{}'.format(k,i), 'p', population)
         # zera população de filhos
         pop_children = []
 
