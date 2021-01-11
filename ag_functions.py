@@ -20,24 +20,29 @@ POP_SIZE = 100
 SPLIT = int(BITS / 2)
 
 
+""" Calcula valor de precisão em casas decimais """
 def precision_2_number_bits(value_precision, i_I = -100, i_F = 100):
     num = ((i_F - (i_I)) * (m.pow(10, value_precision)))
     return m.ceil( m.log(num) / m.log(2) )
 
-def generate_population(pop_size, bits):
+
+""" Cria população de indivíduos -> representação binária """
+def generate_population():
     population = []
-    for i in range(pop_size):
-        cromosso = np.zeros(bits)
+    for i in range(POP_SIZE):
+        cromosso = np.zeros(BITS)
 
         # alelo
-        for j in range(bits):
+        for j in range(BITS):
             cromosso[j] = rd.randint(0,1)
 
         population.append(cromosso)
         
     return population
 
-def bin_2_int(value_bit, bits):
+
+""" Transforma valor binário para inteiro """
+def bin_2_int(value_bit):
     soma = 0
     index = len(value_bit)
 
@@ -45,32 +50,40 @@ def bin_2_int(value_bit, bits):
         soma = soma + value_bit[i] * m.pow(2, (index - 1))
         index -= 1
 
-
-    soma = (soma *  ( 200 / (( 2**(bits/2) ) - 1) ) ) - 100
+    soma = (soma *  ( 200 / (( 2**(BITS/2) ) - 1) ) ) - 100
     return soma
 
+
+""" Calcula valor de aptidão """
 def fitness(x, y):
     num = m.pow( ( m.sin( m.sqrt( ( (x*x) + (y*y) ) ) ) ) , 2) - 0.5
     den = m.pow( ( ( 1 + ( 0.001 * ( (x*x) + (y*y) )) ) ), 2)
 
     return (0.5 - (num / den))
 
+
+""" Calcula valor de aptidão deslocado """
 def displacement_fitness(x, y):
     num = m.pow( ( m.sin( m.sqrt( ( (x*x) + (y*y) ) ) ) ) , 2) - 0.5
     den = m.pow( ( ( 1 + ( 0.001 * ( (x*x) + (y*y) )) ) ), 2)
+
     return (999.5 - (num / den))
 
-def roulette(pop_size, sum_fitness, fitness):
+
+""" Executa procedimento de roleta """
+def roulette(sum_fitness, fitness):
     i = 0
     aux = 0
     limit = rd.random() * sum_fitness
 
-    while(i < pop_size and aux < limit):
+    while(i < POP_SIZE and aux < limit):
         aux += fitness[i]
         i += 1
 
     return (i - 1)
 
+
+""" Executa procedimento de soma dos valores de aptidão """
 def sum_fitness(fitness):
     v_sum = 0
     for i in range(len(fitness)):
@@ -78,10 +91,12 @@ def sum_fitness(fitness):
         # print('v_sum = {} | v_fit = {}'.format(v_sum, x[i]))
     return v_sum
 
-def mutation(children, tm):
+
+""" Executa procedimento de mutação """
+def mutation(children):
     for i in range(len(children)):
         for j in range(len(children[i])):
-            if(rd.random() < tm):
+            if(rd.random() < TM):
                 if(children[i][j] == 1):
                     children[i][j] = 0
                 else:
@@ -89,19 +104,21 @@ def mutation(children, tm):
 
     return children
 
-def crossover(parent_1, parent_2, bits, tc):
+
+""" Executa procedimento de cruzamento """
+def crossover(parent_1, parent_2):
     children = []
-    if(rd.random() < tc):
-        # cria vetor de indices inteiros até [bits - 1]
-        indexs = np.arange(0, bits, 1)
+    if(rd.random() < TC):
+        # cria vetor de indices inteiros até [BITS - 1]
+        indexs = np.arange(0, BITS, 1)
         # sorteia indice de corte
         index_sort = rd.sample(list(indexs), 1)
 
-        new_1 = np.zeros(bits)
-        new_2 = np.zeros(bits)
+        new_1 = np.zeros(BITS)
+        new_2 = np.zeros(BITS)
 
-        # print('\tCruzamento')
-        if(index_sort == 0 or index_sort == (bits-1)):
+        # print('\TCruzamento')
+        if(index_sort == 0 or index_sort == (BITS-1)):
             new_1[index_sort] = parent_1[index_sort]
             new_1[index_sort : ] = parent_2[index_sort :]
 
@@ -120,17 +137,19 @@ def crossover(parent_1, parent_2, bits, tc):
         children = np.append(children, parent_1)
         children = np.append(children, parent_2)
     
-    return np.reshape(children, (2,bits))
+    return np.reshape(children, (2,BITS))
 
-def crossover_binary(parent_1, parent_2, bits, tc):
+
+""" Executa cruzamento binário """
+def crossover_binary(parent_1, parent_2):
     children = []
-    if(rd.random() < tc):
+    if(rd.random() < TC):
 
-        new_1 = np.zeros(bits)
-        new_2 = np.zeros(bits)
+        new_1 = np.zeros(BITS)
+        new_2 = np.zeros(BITS)
 
-        # cria vetor de indices inteiros até [bits - 1]
-        indexs = np.arange(0, bits, 1)
+        # cria vetor de indices inteiros até [BITS - 1]
+        indexs = np.arange(0, BITS, 1)
         # sorteia indice de corte
         boolean = True
         while(boolean == True):
@@ -183,16 +202,18 @@ def crossover_binary(parent_1, parent_2, bits, tc):
         children = np.append(children, parent_1)
         children = np.append(children, parent_2)
     
-    return  np.reshape(children, (2,bits))
+    return  np.reshape(children, (2,BITS))
 
-def uniform_crossover_binary(parent_1, parent_2, bits, tc):
+
+""" Executa cruzamento binário uniforme """
+def uniform_crossover_binary(parent_1, parent_2):
     children = []
-    if(rd.random() < tc):
-        mask = np.zeros(bits)
-        new_1 = np.zeros(bits)
-        new_2 = np.zeros(bits)
+    if(rd.random() < TC):
+        mask = np.zeros(BITS)
+        new_1 = np.zeros(BITS)
+        new_2 = np.zeros(BITS)
 
-        for i in range(bits):
+        for i in range(BITS):
             mask[i] = rd.randint(0,1)
             if(mask[i] == 1):
                 new_1[i] = parent_2[i]
@@ -207,11 +228,11 @@ def uniform_crossover_binary(parent_1, parent_2, bits, tc):
         children = np.append(children, parent_1)
         children = np.append(children, parent_2)
     
-    return  np.reshape(children, (2,bits))
+    return  np.reshape(children, (2,BITS))
 
 
-
-def save(name, first_char_name_arq, bits, structure):
+""" Salva estrutura da população """
+def save(name, first_char_name_arq, structure):
 
     aux = name.split('/{}'.format(first_char_name_arq))
     folder = os.getcwd()  + aux[0]
@@ -219,8 +240,8 @@ def save(name, first_char_name_arq, bits, structure):
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    # cria vetor de indices inteiros até [bits - 1]
-    columns = np.arange(0, bits, 1)
+    # cria vetor de indices inteiros até [BITS - 1]
+    columns = np.arange(0, BITS, 1)
     # estabelece path de destino do arquivo
     complete_path = os.getcwd() + str(name) + '.csv'
 
@@ -231,6 +252,7 @@ def save(name, first_char_name_arq, bits, structure):
             linha.writerow(element)
 
 
+""" Seleciona os melhores indivíduos da população """
 def select_best_indexes(list_interable, num_values):
     search_space = list_interable.copy()
     indexes = []
@@ -240,6 +262,8 @@ def select_best_indexes(list_interable, num_values):
 
     return indexes
 
+
+""" Seleciona os piores indivíduos da população """
 def select_worst_indexes(list_interable, num_values):
     search_space = list_interable.copy()
     indexes = []
@@ -249,13 +273,18 @@ def select_worst_indexes(list_interable, num_values):
 
     return indexes
 
+
+"""" Seleciona melhor indivíduo da população """
 def select_best_fitness(list_interable):
     return list_interable[np.argmax(list_interable)]
 
+
+"""" Seleciona pior indivíduo da população """
 def select_bad_fitness(list_interable):
     return list_interable[np.argmin(list_interable)]
 
 
+""" Executa procedimento de elitismo """
 def elitism(best_indexes, bad_indexes, pop, pop_children):
     aux = 0
 
@@ -267,16 +296,18 @@ def elitism(best_indexes, bad_indexes, pop, pop_children):
 
     return pop_children
 
-def estimate_fitness(population, pop_size, bits, split, fitness_type='N'):
-    pop_fitness = np.zeros(pop_size)
 
-    for i in range(pop_size):
+"""" Realiza cálculo de aptidão dos indivíduos -> representação binária """
+def estimate_fitness(population, fitness_type='N'):
+    pop_fitness = np.zeros(POP_SIZE)
+
+    for i in range(POP_SIZE):
         # divide cromosso para conversão
-        x_bin = population[i][ : split ]
-        y_bin = population[i][ split : ]
+        x_bin = population[i][ : SPLIT ]
+        y_bin = population[i][ SPLIT : ]
         # executa conversão binário para inteiro
-        x_int = bin_2_int(x_bin, bits)
-        y_int = bin_2_int(y_bin, bits)
+        x_int = bin_2_int(x_bin, BITS)
+        y_int = bin_2_int(y_bin, BITS)
         # preenche vetor Fitness da população
         if(fitness_type == 'N'):
             pop_fitness[i] = fitness(x_int, y_int)
@@ -286,6 +317,7 @@ def estimate_fitness(population, pop_size, bits, split, fitness_type='N'):
     return pop_fitness
 
 
+""" Cria população de indivíduos -> representação real """
 def generate_population_real():
     population = []
     for i in range(POP_SIZE):
@@ -297,6 +329,8 @@ def generate_population_real():
     
     return population
 
+
+"""" Realiza cálculo de aptidão dos indivíduos -> representação real """
 def estimate_fitness_real(population):
     pop_fitness = np.zeros(POP_SIZE)
     for k in range(POP_SIZE):
@@ -307,6 +341,7 @@ def estimate_fitness_real(population):
     return pop_fitness
 
 
+""" Executa procedimento de cruzamento -> representação real """
 def crossover_real(parent_1, parent_2):
     children = []
 
@@ -330,6 +365,8 @@ def crossover_real(parent_1, parent_2):
     
     return np.reshape(children, (2,BITS))
 
+
+""" Executa procedimento de cruzamento com média aritmética -> representação real """
 def media_arithmetic_crossover_real(parent_1, parent_2):
     children = []
     if(rd.random() < TC):
@@ -344,16 +381,18 @@ def media_arithmetic_crossover_real(parent_1, parent_2):
     
     return  np.reshape(children, (1,BITS))
 
+
+""" Executa procedimento de mutação randomica uniforme -> representação real """
 def uniform_random_mutation(children):
     for i in range(len(children)):
         for j in range(len(children[i])):
             if(rd.random() < TM):
                 children[i][j] = rd.uniform(-100, 100)
-                # break
 
     return children
 
 
+""" Realiza cálculo de aptidão dos indivíduos -> f6(modificada) """
 def estimate_fitness_real_f6_M(population):
     pop_fitness = np.zeros(POP_SIZE)
     for k in range(POP_SIZE):
