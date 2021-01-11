@@ -11,14 +11,14 @@ import random as rd
 import csv
 import os
 
-
+# 6 casas decimais => 28 bits
 TM = 0.01
 TC = 0.75
-BITS = 5
-POP_SIZE = 100
-
+BITS = 56
 SPLIT = int(BITS / 2)
-
+POP_SIZE = 100
+GENERATION = 500
+PERCENT = 10
 
 """ Calcula valor de precisão em casas decimais """
 def precision_2_number_bits(value_precision, i_I = -100, i_F = 100):
@@ -306,8 +306,8 @@ def estimate_fitness(population, fitness_type='N'):
         x_bin = population[i][ : SPLIT ]
         y_bin = population[i][ SPLIT : ]
         # executa conversão binário para inteiro
-        x_int = bin_2_int(x_bin, BITS)
-        y_int = bin_2_int(y_bin, BITS)
+        x_int = bin_2_int(x_bin)
+        y_int = bin_2_int(y_bin)
         # preenche vetor Fitness da população
         if(fitness_type == 'N'):
             pop_fitness[i] = fitness(x_int, y_int)
