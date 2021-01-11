@@ -20,6 +20,8 @@ POP_SIZE = 100
 GENERATION = 500
 PERCENT = 10
 
+REPETITIONS = 5
+
 """ Calcula valor de precisão em casas decimais """
 def precision_2_number_bits(value_precision, i_I = -100, i_F = 100):
     num = ((i_F - (i_I)) * (m.pow(10, value_precision)))
