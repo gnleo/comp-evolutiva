@@ -1,6 +1,8 @@
 from ee_functions import *
 import matplotlib.pyplot as plt
 
+sum_diversity = 0
+
 pop_aux = []
 population = []
 pop_children = []
@@ -12,6 +14,7 @@ fitness_parents = np.zeros(POP_PARENTS)
 average_fitness = []
 bad_fitness = []
 best_fitness = []
+diversity = []
 
 POP_AUX = POP_CHILDREN + POP_PARENTS
 
@@ -49,12 +52,17 @@ for g in range(GENERATION):
     # executa avaliação fitness dos indivíduos da geração atual
     fitness_parents = estimate_fitness(pop_parents, POP_PARENTS)
 
+    value_diversity_generation = measure_diversity_distance_euclidean(pop_parents)
+    sum_diversity = (sum_diversity + value_diversity_generation) / POP_PARENTS
+
     # calcula média fitness da geração atual
     average_fitness = np.append(average_fitness, ((sum_fitness(fitness_parents)) / POP_PARENTS))
     # seleciona melhor indivíduo da geração atual
     best_fitness = np.append(best_fitness, select_best_fitness(fitness_parents))
     # seleciona piores indivíduos da geração atual
     bad_fitness = np.append(bad_fitness, select_bad_fitness(fitness_parents))
+    # diversidade
+    diversity = np.append(diversity, sum_diversity)
 
 
 # average_fitness = np.reshape(average_fitness, (1, GENERATION))
@@ -62,11 +70,12 @@ for g in range(GENERATION):
 
 print('FIM PROCESSO EVOLUTIVO')
 
-fig, ax = plt.subplots() 
+fig, (ax,bx) = plt.subplots(1,2) 
 
 ax.plot(best_fitness, label='melhor')
 ax.plot(average_fitness, label='média')
 ax.plot(bad_fitness, label='pior')
+bx.plot(diversity, label='diversidade')
 # configuração legenda
 ax.set_xlabel('iteração')
 ax.set_ylabel('fitness')

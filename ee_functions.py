@@ -8,8 +8,8 @@ from statistics import pstdev, stdev
 
 
 RO = 2 # indica cruzamento | numero de indivíduos para cruzamento
-MI = 100 # pais
-LAMBIDA = 200 # filhos
+MI = 200 # pais
+LAMBIDA = 100 # filhos
 BITS = 5
 TM = 0.01
 TC = 0.75
@@ -48,6 +48,19 @@ def generate_population():
     return population
 
 
+""" Executa procedimento de roleta """
+def roulette(sum_fitness, fitness):
+    i = 0
+    aux = 0
+    limit = rd.random() * sum_fitness
+
+    while(i < POP_PARENTS and aux < limit):
+        aux += fitness[i]
+        i += 1
+
+    return (i - 1)
+
+
 """ Realiza cálculo de aptidão dos indivíduos -> f6(modificada) """
 def estimate_fitness(population, POP_SIZE):
     pop_fitness = np.zeros(POP_SIZE)
@@ -66,16 +79,18 @@ def estimate_fitness(population, POP_SIZE):
 def media_arithmetic_crossover_real(parent_1, parent_2):
     children = []
     if(rd.random() < TC):
-        new_1 = np.zeros(BITS)
+        new_1 = np.zeros(BITS+1)
 
         for i in range(BITS):
             new_1[i] = ((parent_1[i] + parent_2[i]) / 2)
 
+        new_1[5] = parent_1[5]
         children = np.append(children, new_1)
     else:
         children = np.append(children, parent_1)
     
-    return  np.reshape(children, (1,BITS))
+    print(children)
+    return  np.reshape(children, (1,(BITS+1)))
 
 
 """ Executa procedimento de mutação randomica uniforme -> representação real """
@@ -153,3 +168,20 @@ def mi_alfa(population):
         pop_n[i][5] = population[i][5]
 
     return pop_n
+
+""" Medida de diversidade -> distância euclidiana """
+def measure_diversity_distance_euclidean(population):
+    distance = 0
+
+    for i in range(POP_PARENTS -1):
+        for j in range(1, POP_PARENTS):
+            d = np.sqrt( 
+            (population[j][0] - population[i][0])**2 + 
+            (population[j][1] - population[i][1])**2 +
+            (population[j][2] - population[i][2])**2 +
+            (population[j][3] - population[i][3])**2 +
+            (population[j][4] - population[i][4])**2
+            )
+            distance += d
+
+    return distance
