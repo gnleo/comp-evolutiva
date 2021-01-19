@@ -14,13 +14,13 @@ import os
 # 6 casas decimais => 28 bits
 TM = 0.01
 TC = 0.75
-BITS = 56
+BITS = 2
 SPLIT = int(BITS / 2)
 POP_SIZE = 100
 GENERATION = 500
-PERCENT = 10
+PERCENT = 1
 
-REPETITIONS = 5
+REPETITIONS = 3
 
 """ Calcula valor de precisão em casas decimais """
 def precision_2_number_bits(value_precision, i_I = -100, i_F = 100):
@@ -406,3 +406,72 @@ def estimate_fitness_real_f6_M(population):
         pop_fitness[k] = fitness(x1,x2) + fitness(x2,x3) + fitness(x3,x4) + fitness(x4,x5) + fitness(x5,x1)
     
     return pop_fitness
+
+
+""" Medida de diversidade -> aptidão """
+def measure_diversity_aptitude(media_fitness_population, best_fitness):
+    return (media_fitness_population / best_fitness)
+
+
+""" Medida de diversidade -> Hamming (melhor e pior indivíduos) """
+def measure_diversity_hamming(population, pop_fitness):
+    distance = 0
+    best_index = select_best_indexes(pop_fitness, 1)
+    bad_index = select_worst_indexes(pop_fitness, 1)
+
+    for allele in range(BITS):
+        if(population[int(round(best_index[0]))][allele] != population[int(round(bad_index[0]))][allele]):
+            distance += 1
+
+    return distance
+
+
+""" Medida de diversidade -> Hamming (total) """
+def measure_diversity_hamming_complete(population):
+    distance = 0
+    
+    for i in range (POP_SIZE - 1):
+        for j in range(1, POP_SIZE):
+            for k in range(BITS):
+                if(population[i][k] != population[j][k]):
+                    distance += 1
+
+    return distance
+
+
+""" Medida de diversidade -> distância euclidiana """
+def measure_diversity_distance_euclidean(population):
+    distance = 0
+
+    for i in range(POP_SIZE -1):
+        for j in range(1, POP_SIZE):
+            d = np.sqrt( (population[j][0] - population[i][0])**2 + (population[j][1] - population[i][1])**2 )
+            distance += d
+
+    return distance
+
+
+# verificar ---------------------------------------
+
+def linear_normalization(population, fitness, MIN, MAX, BITS, POP_SIZE):
+    normalized_population = np.zeros([BITS, POP_SIZE])
+    normalized_fitness = np.zeros(POP_SIZE)
+    # cria matriz de indivíduos e seus respectivos valores de aptdão
+    pop_complete = np.c_[population, fitness]
+
+    # ordena os indivíduos de forma decrescente, de acordo com a última coluna
+    aux = sorted(pop_complete, reverse=True, key=itemgetter(len(pop_complete)))
+
+    for i in range(POP_SIZE):
+        normalized_population[i] = aux[i][ : len(pop_complete)]
+    
+    value_n = MAX - MIN
+    value_d = POP_SIZE - 1
+    value = value_n / value_d
+
+    # print('n = {} d = {} v = {}'.format(value_n, value_d, value))
+
+    for j in range(POP_SIZE):
+        normalized_fitness[j] = MIN + (value * ((j+1) - 1))
+
+    return normalized_population, sorted(normalized_fitness, reverse=True)
