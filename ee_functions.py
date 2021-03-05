@@ -1,9 +1,11 @@
-from operator import itemgetter
+""" @author: gnleo """
+
+import os
+import csv
 import math as m
 import numpy as np
 import random as rd
-import csv
-import os
+from operator import itemgetter
 from statistics import pstdev, stdev
 
 

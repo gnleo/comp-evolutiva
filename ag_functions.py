@@ -1,26 +1,22 @@
-"""
-Created on Tue 2020 27 Oct
+""" @author: gnleo """
 
-@author: gnleo
-"""
-
-from operator import itemgetter
-import math as m
-import numpy as np
-import random as rd
-import csv
 import os
+import csv
+import math as m
+import random as rd
+from fitness import *
+from operator import itemgetter
 
 # 6 casas decimais => 28 bits
 TM = 0.01
 TC = 0.75
-BITS = 2
+BITS = 56
 SPLIT = int(BITS / 2)
 POP_SIZE = 100
 GENERATION = 500
-PERCENT = 1
+PERCENT = 10
 
-REPETITIONS = 3
+REPETITIONS = 1
 
 """ Calcula valor de precisão em casas decimais """
 def precision_2_number_bits(value_precision, i_I = -100, i_F = 100):
@@ -54,22 +50,6 @@ def bin_2_int(value_bit):
 
     soma = (soma *  ( 200 / (( 2**(BITS/2) ) - 1) ) ) - 100
     return soma
-
-
-""" Calcula valor de aptidão """
-def fitness(x, y):
-    num = m.pow( ( m.sin( m.sqrt( ( (x*x) + (y*y) ) ) ) ) , 2) - 0.5
-    den = m.pow( ( ( 1 + ( 0.001 * ( (x*x) + (y*y) )) ) ), 2)
-
-    return (0.5 - (num / den))
-
-
-""" Calcula valor de aptidão deslocado """
-def displacement_fitness(x, y):
-    num = m.pow( ( m.sin( m.sqrt( ( (x*x) + (y*y) ) ) ) ) , 2) - 0.5
-    den = m.pow( ( ( 1 + ( 0.001 * ( (x*x) + (y*y) )) ) ), 2)
-
-    return (999.5 - (num / den))
 
 
 """ Executa procedimento de roleta """
@@ -107,8 +87,8 @@ def mutation(children):
     return children
 
 
-""" Executa procedimento de cruzamento """
-def crossover(parent_1, parent_2):
+""" Executa procedimento de cruzamento um ponto de corte """
+def crossover_one_point(parent_1, parent_2):
     children = []
     if(rd.random() < TC):
         # cria vetor de indices inteiros até [BITS - 1]
@@ -142,8 +122,8 @@ def crossover(parent_1, parent_2):
     return np.reshape(children, (2,BITS))
 
 
-""" Executa cruzamento binário """
-def crossover_binary(parent_1, parent_2):
+""" Executa cruzamento binário dois pontos de corte"""
+def crossover_two_point(parent_1, parent_2):
     children = []
     if(rd.random() < TC):
 
@@ -312,99 +292,10 @@ def estimate_fitness(population, fitness_type='N'):
         y_int = bin_2_int(y_bin)
         # preenche vetor Fitness da população
         if(fitness_type == 'N'):
-            pop_fitness[i] = fitness(x_int, y_int)
+            pop_fitness[i] = fitness_schaffer_4(x_int, y_int)
         else:
-            pop_fitness[i] = displacement_fitness(x_int, y_int)
+            pop_fitness[i] = fitness_displacement_schaffer_6(x_int, y_int)
 
-    return pop_fitness
-
-
-""" Cria população de indivíduos -> representação real """
-def generate_population_real():
-    population = []
-    for i in range(POP_SIZE):
-        cromosso = np.zeros(BITS)
-        for j in range(BITS):
-            cromosso[j] = rd.uniform(-100, 100)
-
-        population.append(cromosso)
-    
-    return population
-
-
-"""" Realiza cálculo de aptidão dos indivíduos -> representação real """
-def estimate_fitness_real(population):
-    pop_fitness = np.zeros(POP_SIZE)
-    for k in range(POP_SIZE):
-        x = population[k][0]
-        y = population[k][1]
-        pop_fitness[k] = fitness(x,y)
-    
-    return pop_fitness
-
-
-""" Executa procedimento de cruzamento -> representação real """
-def crossover_real(parent_1, parent_2):
-    children = []
-
-    if(rd.random() < TC):
-
-        new_1 = np.zeros(BITS)
-        new_2 = np.zeros(BITS)
-
-        new_1[0] = parent_1[0]
-        new_1[1] = parent_2[1]
-
-        new_2[0] = parent_2[0]
-        new_2[1] = parent_1[1]
-
-        children = np.append(children, new_1)
-        children = np.append(children, new_2)
-
-    else:
-        children = np.append(children, parent_1)
-        children = np.append(children, parent_2)
-    
-    return np.reshape(children, (2,BITS))
-
-
-""" Executa procedimento de cruzamento com média aritmética -> representação real """
-def media_arithmetic_crossover_real(parent_1, parent_2):
-    children = []
-    if(rd.random() < TC):
-        new_1 = np.zeros(BITS)
-
-        for i in range(BITS):
-            new_1[i] = ((parent_1[i] + parent_2[i]) / 2)
-
-        children = np.append(children, new_1)
-    else:
-        children = np.append(children, parent_1)
-    
-    return  np.reshape(children, (1,BITS))
-
-
-""" Executa procedimento de mutação randomica uniforme -> representação real """
-def uniform_random_mutation(children):
-    for i in range(len(children)):
-        for j in range(len(children[i])):
-            if(rd.random() < TM):
-                children[i][j] = rd.uniform(-100, 100)
-
-    return children
-
-
-""" Realiza cálculo de aptidão dos indivíduos -> f6(modificada) """
-def estimate_fitness_real_f6_M(population):
-    pop_fitness = np.zeros(POP_SIZE)
-    for k in range(POP_SIZE):
-        x1 = population[k][0]
-        x2 = population[k][1]
-        x3 = population[k][2]
-        x4 = population[k][3]
-        x5 = population[k][4]
-        pop_fitness[k] = fitness(x1,x2) + fitness(x2,x3) + fitness(x3,x4) + fitness(x4,x5) + fitness(x5,x1)
-    
     return pop_fitness
 
 
@@ -475,3 +366,34 @@ def linear_normalization(population, fitness, MIN, MAX, BITS, POP_SIZE):
         normalized_fitness[j] = MIN + (value * ((j+1) - 1))
 
     return normalized_population, sorted(normalized_fitness, reverse=True)
+
+
+
+
+""" Retorna os pontos de determinada população de indivíduos """
+def map_points(path, type_struct):
+    data = np.genfromtxt(os.getcwd() + path, delimiter=',')
+
+    x = []
+    y = []
+    z = []
+
+    for i in range(len(data[ 1 : ])):
+        if(type_struct == 'R'):
+            # representaçao real ------
+            x = np.append(x, data[ i ][ 0 ])
+            y = np.append(y, data[ i ][ 1 ])
+        else:
+            # representaçao binária ------
+            x = np.append(x, round(bin_2_int(data[ i ][ : SPLIT ]), 6))
+            y = np.append(y, round(bin_2_int(data[ i ][ SPLIT : ]), 6))
+
+    for i in range(len(data[ 1 : ])):
+        if(type_struct == 'R'):
+            # representaçao real ------
+            z = np.append(z, fitness_ackley(x[i],y[i]))
+        else:
+            # representaçao binária ------
+            z = np.append(z, round(fitness_schaffer_4(x[i],y[i]), 6))
+
+    return x, y, z
