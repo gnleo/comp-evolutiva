@@ -1,7 +1,9 @@
 """ @author: gnleo """
 
 # library's --------
-from ag_functions import *
+import os
+from ag_functions import save, sum_fitness, roulette, select_bad_fitness, select_best_fitness
+from ag_functions_real import *
 import matplotlib.pyplot as plt
 
 # variables ----------
@@ -14,7 +16,7 @@ best_fitness = []
 pop_fitness = np.zeros(POP_SIZE)
 children_fitness = np.zeros(POP_SIZE)
 
-PATH_SAVE = "/05/5_real/uniforme"
+PATH_SAVE = "/04/cruzamento_real"
 
 # main ----------
 population = generate_population_real()
@@ -22,7 +24,7 @@ POPULATION_COPY = population.copy()
 
 save(PATH_SAVE + '/population_inicial', 'p', population)
 
-pop_fitness = estimate_fitness_real_f6_M(population)
+pop_fitness = estimate_fitness_real(population)
 
 # para executar o algoritmo N vezes -> alterar o valor da variável 'repetitions'
 for k in range(REPETITIONS):
@@ -41,7 +43,7 @@ for k in range(REPETITIONS):
             index_parent_1 = roulette(fitness_sum, pop_fitness)
             index_parent_2 = roulette(fitness_sum, pop_fitness)
 
-            children = uniform_crossover_binary(population[index_parent_1], population[index_parent_2])
+            children = crossover_real(population[index_parent_1], population[index_parent_2])
             
             # executa procedimento de mutação
             children = uniform_random_mutation(children)
@@ -58,12 +60,18 @@ for k in range(REPETITIONS):
         pop_children = []
 
         # calcula fitness da geração atual => pop_fitness 
-        pop_fitness = estimate_fitness_real_f6_M(population)
+        pop_fitness = estimate_fitness_real(population)
 
         # executa preenchimento dos vetores de média, pior e melhor (fitness)
         average_fitness = np.append(average_fitness, ((sum_fitness(pop_fitness)) / POP_SIZE))
-        bad_fitness = np.append(bad_fitness, select_bad_fitness(pop_fitness))
-        best_fitness = np.append(best_fitness, select_best_fitness(pop_fitness))
+
+        # MAXIMIZAÇÃO
+        # bad_fitness = np.append(bad_fitness, select_bad_fitness(pop_fitness))
+        # best_fitness = np.append(best_fitness, select_best_fitness(pop_fitness))
+        
+        # MINIMIZAÇÃO
+        bad_fitness = np.append(bad_fitness, select_best_fitness(pop_fitness))
+        best_fitness = np.append(best_fitness, select_bad_fitness(pop_fitness))
 
     print('FIM PROCESSO EVOLUTIVO {}'.format(k))
 

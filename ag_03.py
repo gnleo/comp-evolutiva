@@ -1,8 +1,4 @@
-"""
-Created on Tue 2020 27 Oct
-
-@author: gnleo
-"""
+""" @author: gnleo """
 
 # library's --------
 from ag_functions import *
