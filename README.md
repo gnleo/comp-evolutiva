@@ -12,7 +12,8 @@ onde há duas abordagens uma *binária* e outra *real*.
 No arquivo 'fitness' -> estão especificadas as funções de avaliação.
 
 > **Gráficos**
-    - É importante observar/alterar o domínio para cada função [f];
+
+- É importante observar/alterar o domínio para cada função [f];
 
 *surface* -> demonstra o comportamento de determinada [f]
 
