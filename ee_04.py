@@ -6,7 +6,7 @@ sum_diversity = 0
 children = []
 pop_aux = []
 pop_parents = []
-pop_childrens = []
+pop_children = []
 
 average_fitness = []
 bad_fitness = []
@@ -18,12 +18,12 @@ fitness_parents = estimate_fitness(pop_parents, POP_PARENTS)
 
 POP_SIZE_AUX = POP_CHILDREN + POP_PARENTS
 
-fitness_aux = np.zeros(POP_SIZE_AUX)
+fitness_aux = np.zeros(POP_CHILDREN)
 fitness_parents = np.zeros(POP_PARENTS)
 
 
 for g in range(GENERATION):
-    while(int(len(pop_childrens) / (BITS + 1)) != POP_CHILDREN):
+    while(int(len(pop_children) / (BITS + 1)) != POP_CHILDREN):
         fitness_sum = sum_fitness(fitness_parents)
 
         # seleciona os índices de indivíduos aptos ao cruzamento
@@ -34,15 +34,14 @@ for g in range(GENERATION):
         children = media_arithmetic_crossover_real(pop_parents[index_parent_1], pop_parents[index_parent_2])
         
         # adiciona filhos para nova população (geração)
-        pop_childrens = np.append(pop_childrens, children)
+        pop_children = np.append(pop_children, children)
 
-    pop_childrens = np.reshape(pop_childrens, (POP_CHILDREN, BITS+1))
+    pop_children = np.reshape(pop_children, (POP_CHILDREN, BITS+1))
 
-    pop_aux = np.append(pop_aux, pop_parents)
-    pop_aux = np.append(pop_aux, mi_alfa(pop_childrens))
-    pop_aux = np.reshape(pop_aux, (POP_SIZE_AUX, BITS+1))
+    pop_aux = np.append(pop_aux, mi_alfa(pop_children))
+    pop_aux = np.reshape(pop_aux, (POP_CHILDREN, BITS+1))
 
-    fitness_aux = estimate_fitness(pop_aux, POP_SIZE_AUX)
+    fitness_aux = estimate_fitness(pop_aux, POP_CHILDREN)
 
     # seleciona os melhores indivíduos da população aux
     best_indexes_aux = select_best_indexes(fitness_aux, POP_PARENTS)
@@ -53,7 +52,7 @@ for g in range(GENERATION):
 
     # zera variáveis
     pop_aux = []
-    pop_childrens = []
+    pop_children = []
 
     # executa avaliação fitness dos indivíduos da geração atual
     fitness_parents = estimate_fitness(pop_parents, POP_PARENTS)

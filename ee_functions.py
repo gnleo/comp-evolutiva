@@ -8,8 +8,8 @@ from statistics import pstdev, stdev
 
 
 RO = 2 # indica cruzamento | numero de indivíduos para cruzamento
-MI = 200 # pais
-LAMBIDA = 100 # filhos
+MI = 100 # pais
+LAMBIDA = 300 # filhos
 BITS = 5
 TM = 0.01
 TC = 0.75
@@ -89,7 +89,6 @@ def media_arithmetic_crossover_real(parent_1, parent_2):
     else:
         children = np.append(children, parent_1)
     
-    print(children)
     return  np.reshape(children, (1,(BITS+1)))
 
 
@@ -157,9 +156,11 @@ def sum_fitness(fitness):
 
 def mi_alfa(population):
     
-    pop_n = np.zeros((POP_PARENTS, BITS + 1))
+    # pop_n = np.zeros((POP_PARENTS, BITS + 1))
+    pop_n = np.zeros((POP_CHILDREN, BITS + 1))
 
-    for i in range(POP_PARENTS):
+    # for i in range(POP_PARENTS):
+    for i in range(POP_CHILDREN): # para ag_02 -> filhos maior que pai
         for j in range(BITS):
             # increment = density_function(population[i][5])
             increment = rd.gauss(0.0, population[i][5])

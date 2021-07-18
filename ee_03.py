@@ -3,46 +3,36 @@ import matplotlib.pyplot as plt
 
 sum_diversity = 0
 
-children = []
 pop_aux = []
-pop_parents = []
-pop_childrens = []
+population = []
+pop_children = []
+best_indexes_aux = []
+
+fitness_aux = np.zeros(300)
+fitness_parents = np.zeros(POP_PARENTS)
 
 average_fitness = []
 bad_fitness = []
 best_fitness = []
 diversity = []
 
+
+# main
+
 pop_parents = generate_population()
-fitness_parents = estimate_fitness(pop_parents, POP_PARENTS)
-
-POP_SIZE_AUX = POP_CHILDREN + POP_PARENTS
-
-fitness_aux = np.zeros(POP_SIZE_AUX)
-fitness_parents = np.zeros(POP_PARENTS)
-
 
 for g in range(GENERATION):
-    while(int(len(pop_childrens) / (BITS + 1)) != POP_CHILDREN):
-        fitness_sum = sum_fitness(fitness_parents)
+    # cria filhos a partir dos pais 
+    pop_children = np.append(pop_children, mi_alfa(pop_parents))
+    pop_children = np.append(pop_children, mi_alfa(pop_parents))
+    pop_children = np.append(pop_children, mi_alfa(pop_parents))
+    # pop_children = np.reshape(pop_children, (POP_CHILDREN, BITS + 1))
 
-        # seleciona os índices de indivíduos aptos ao cruzamento
-        index_parent_1 = roulette(fitness_sum, fitness_parents)
-        index_parent_2 = roulette(fitness_sum, fitness_parents)
+    # refatora matriz auxiliar
+    pop_aux = np.append(pop_aux, pop_children)
+    pop_aux = np.reshape(pop_aux, (POP_CHILDREN, BITS + 1))
 
-        # cruzamento
-        children = media_arithmetic_crossover_real(pop_parents[index_parent_1], pop_parents[index_parent_2])
-        
-        # adiciona filhos para nova população (geração)
-        pop_childrens = np.append(pop_childrens, children)
-
-    pop_childrens = np.reshape(pop_childrens, (POP_CHILDREN, BITS+1))
-
-    pop_aux = np.append(pop_aux, pop_parents)
-    pop_aux = np.append(pop_aux, mi_alfa(pop_childrens))
-    pop_aux = np.reshape(pop_aux, (POP_SIZE_AUX, BITS+1))
-
-    fitness_aux = estimate_fitness(pop_aux, POP_SIZE_AUX)
+    fitness_aux = estimate_fitness(pop_aux, POP_CHILDREN)
 
     # seleciona os melhores indivíduos da população aux
     best_indexes_aux = select_best_indexes(fitness_aux, POP_PARENTS)
@@ -53,7 +43,7 @@ for g in range(GENERATION):
 
     # zera variáveis
     pop_aux = []
-    pop_childrens = []
+    pop_children = []
 
     # executa avaliação fitness dos indivíduos da geração atual
     fitness_parents = estimate_fitness(pop_parents, POP_PARENTS)
@@ -69,6 +59,9 @@ for g in range(GENERATION):
     bad_fitness = np.append(bad_fitness, select_bad_fitness(fitness_parents))
     # diversidade
     diversity = np.append(diversity, sum_diversity)
+
+
+# average_fitness = np.reshape(average_fitness, (1, GENERATION))
 
 
 print('FIM PROCESSO EVOLUTIVO')
