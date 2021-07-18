@@ -1,8 +1,4 @@
-"""
-Created on Tue 2020 27 Oct
-
-@author: gnleo
-"""
+""" @author: gnleo """
 
 # library's --------
 from ag_functions import *
@@ -18,7 +14,7 @@ best_fitness = []
 pop_fitness = np.zeros(POP_SIZE)
 children_fitness = np.zeros(POP_SIZE)
 
-PATH_SAVE = "/01"
+PATH_SAVE = "/01/cruzamento_uniforme"
 
 # main ----------
 population = generate_population()
@@ -61,8 +57,14 @@ for i in range(GENERATION):
 
     # executa preenchimento dos vetores de média, pior e melhor (fitness)
     average_fitness = np.append(average_fitness, ((sum_fitness(pop_fitness)) / POP_SIZE))
-    bad_fitness = np.append(bad_fitness, select_bad_fitness(pop_fitness))
-    best_fitness = np.append(best_fitness, select_best_fitness(pop_fitness))
+    
+    # MAXIMIZAÇÃO
+    # bad_fitness = np.append(bad_fitness, select_bad_fitness(pop_fitness))
+    # best_fitness = np.append(best_fitness, select_best_fitness(pop_fitness))
+    
+    # MINIMIZAÇÃO
+    bad_fitness = np.append(bad_fitness, select_best_fitness(pop_fitness))
+    best_fitness = np.append(best_fitness, select_bad_fitness(pop_fitness))
 
 print('FIM PROCESSO EVOLUTIVO')
 

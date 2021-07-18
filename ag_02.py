@@ -1,8 +1,4 @@
-"""
-Created on Tue 2020 27 Oct
-
-@author: gnleo
-"""
+""" @author: gnleo """
 
 # library's --------
 from ag_functions import *
@@ -18,7 +14,7 @@ best_fitness = []
 pop_fitness = np.zeros(POP_SIZE)
 children_fitness = np.zeros(POP_SIZE)
 
-PATH_SAVE = "/02"
+PATH_SAVE = "/02/cruzamento_uniforme"
 
 # main ----------
 population = generate_population()
@@ -44,7 +40,7 @@ for k in range(REPETITIONS):
             index_parent_1 = roulette(fitness_sum, pop_fitness)
             index_parent_2 = roulette(fitness_sum, pop_fitness)
 
-            children = crossover_binary(population[index_parent_1], population[index_parent_2])
+            children = uniform_crossover_binary(population[index_parent_1], population[index_parent_2])
             
             # executa procedimento de mutação
             children = mutation(children)
@@ -58,13 +54,16 @@ for k in range(REPETITIONS):
 
         # ELITISMO
         # seleciona melhores indivíduos da população anterior 
-        best_indexes = select_best_indexes(pop_fitness, PERCENT)
+        # best_indexes = select_best_indexes(pop_fitness, PERCENT) # MAXIMIZAÇÃO
+        best_indexes = select_worst_indexes(pop_fitness, PERCENT) # MINIMIZAÇÃO
         # seleciona piores indivíduos da geração atual
-        bad_indexes = select_worst_indexes(children_fitness, PERCENT)
+        # bad_indexes = select_worst_indexes(children_fitness, PERCENT) # MAXIMIZAÇÃO
+        bad_indexes = select_best_indexes(children_fitness, PERCENT) # MINIMIZAÇÃO
+        
         # executa elitismo -> altera os piores registros da população, pelos melhores registros do processo evolutivo
         population = elitism(best_indexes, bad_indexes, population, pop_children)
         
-        save(PATH_SAVE + '/evolution_{}/population_{}'.format(k,i), 'p', bits, population)
+        save(PATH_SAVE + '/evolution_{}/population_{}'.format(k,i), 'p', population)
         
         # zera população de filhos
         pop_children = []
@@ -74,8 +73,14 @@ for k in range(REPETITIONS):
 
         # executa preenchimento dos vetores de média, pior e melhor (fitness)
         average_fitness = np.append(average_fitness, ((sum_fitness(pop_fitness)) / POP_SIZE))
-        bad_fitness = np.append(bad_fitness, select_bad_fitness(pop_fitness))
-        best_fitness = np.append(best_fitness, select_best_fitness(pop_fitness))
+
+        # MAXIMIZAÇÃO
+        # bad_fitness = np.append(bad_fitness, select_bad_fitness(pop_fitness))
+        # best_fitness = np.append(best_fitness, select_best_fitness(pop_fitness))
+        
+        # MINIMIZAÇÃO
+        bad_fitness = np.append(bad_fitness, select_best_fitness(pop_fitness))
+        best_fitness = np.append(best_fitness, select_bad_fitness(pop_fitness))
 
     print('FIM PROCESSO EVOLUTIVO {}'.format(k))
 
